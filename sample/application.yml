@@ -1,0 +1,26 @@
+# sphinx pluginの設定
+
+defaults: &defaults
+
+  #serverのどのディレクトリにコンパイル済みsphinx documentを置くか
+  #project_path, temp_dirはdocumentを設置するディレクトリ名
+  server:
+    project_path: /var/www/
+    temp_dir: redminetest
+    server_port: 80
+    repository_path: /var/gitrepo
+
+  #sphinxのmakefileに関する設定
+  sphinx:
+    sphinx_makefile_head: '# Makefile for Sphinx documentation'
+    build_dir_variable_name: 'BUILDDIR'
+    sphinx_index_page: index.html
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

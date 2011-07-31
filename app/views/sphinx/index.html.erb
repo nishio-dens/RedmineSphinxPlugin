@@ -1,6 +1,38 @@
 <h2>Sphinx Document List</h2>
 
-<h3>Repository</h3>
+<h3> Branch </h3>
+
+<table class= "branch_list">
+<thead><tr>
+
+<th>Branch name</th>
+<th>Document</th>
+<th>revision</th>
+<th>Date</th>
+<th>Author</th>
+<th>Comment</th>
+
+</tr></thead>
+
+<tbody>
+<% @extrainfo['branches'].each_pair do | branchname, val | %>
+<tr class="branchlist <%= cycle 'odd', 'even' %>"> 
+<td class="name"> <%= branchname %> </td>
+<% @binfo = @changeset.select{|cdata| cdata['revision']== val['last_scmid'] } %> 
+<td>  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => val['last_scmid'] ) %>  </td>
+<td> <%= val['last_scmid'] %> </td>
+<td> <%= format_time(@binfo[0].committed_on) %> </td>
+<td> <%= @binfo[0].author %> </td>
+<td> <%= @binfo[0].comments %> </td>
+</tr>
+<% end %>
+
+</tbody>
+</table>
+
+<br><br>
+
+<h3> Repository </h3>
 
 <table class="list_changesets">
 <thead>
@@ -25,6 +57,9 @@
 <td class="comments"><%= textilizable(truncate_at_line_break(data.comments)) %></td>
 </tr>
 <% end %>
+
 </tbody>
 </table>
+
+
 

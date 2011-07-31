@@ -90,6 +90,8 @@ class SphinxController < ApplicationController
     @project = Project.find( params[:project_id] )
     @projectId = params[:project_id]
     @repository = @project.repository
+    @branches = @repository.branches
+    @extrainfo = @repository.extra_info
     @changeset = @repository.changesets
   end
 

@@ -91,9 +91,20 @@ class SphinxController < ApplicationController
     @projectId = params[:project_id]
     @repository = @project.repository
     if( @repository != nil ) then
-      @branches = @repository.branches
-      @extrainfo = @repository.extra_info
       @changeset = @repository.changesets
+
+      #repository type
+      case @repository.scm
+      when Redmine::Scm::Adapters::GitAdapter 
+        @repositoryType = "git"
+        @extrainfo = @repository.extra_info
+        @branches = @repository.branches
+      when Redmine::Scm::Adapters::SubversionAdapter
+        @repositoryType = "subversion"
+      when Redmine::Scm::Adapters::MercurialAdapter
+        @repositoryType = "mercurial"
+      end
+
     end
   end
 

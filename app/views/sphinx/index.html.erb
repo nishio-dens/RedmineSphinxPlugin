@@ -1,10 +1,11 @@
 <h2>Sphinx Document List</h2>
 
-<% if ( @extrainfo == nil || @extrainfo['branches'] == nil || @changeset == nil ) then %>
+
+<% if ( @repository == nil || @changeset == nil ) then %>
 
 <p>Sphinxドキュメントが見つかりませんでした。</p>
 
-<% else %>
+<% elsif ( @repositoryType != nil && @repositoryType == "git" && @extrainfo != nil && @extrainfo['branches'] != nil ) then %>
 
 <h3> Branch </h3>
 
@@ -73,6 +74,9 @@
 </table>
 
 
+
+<% else %>
+
+<p>Git以外のrepositoryには対応していません</p>
+
 <% end %> 
-
-

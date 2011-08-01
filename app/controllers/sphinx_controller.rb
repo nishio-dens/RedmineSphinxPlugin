@@ -2,10 +2,10 @@
 class SphinxController < ApplicationController
   unloadable
 
-  #一時的にgitのプロジェクトがおいてある場所を指定
-  #TODO: ここの設定をどこから読み込むか(最後のslashはいる)
-  @@tempDir = Settings.server.temp_dir
-  @@projectPath = Settings.server.project_path
+  #sphinxドキュメント設置ディレクトリ
+  @@tempDir = Settings.server.sphinx_dir
+  #公開ディレクトリのルートパス
+  @@projectPath = Settings.server.document_root_path
   #sphinxのMakefileの先頭文字列
   @@sphinxMakefileHead = Settings.sphinx.sphinx_makefile_head
   #sphinx Makefile内のbuildディレクトリを指定している変数名

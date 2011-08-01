@@ -24,11 +24,21 @@ class SphinxController < ApplicationController
 
     #repositoryの情報取得
     @project = Project.find( params[:project_id] )
-    #git repositoryの取得
-    gitRepositoryPath = @project.repository.url
 
     #sphinx documentのコンパイル
-    compileSphinx( gitRepositoryPath, projectPath, @projectId, @@sphinxMakefileHead, @revision )
+    @repository = @project.repository
+    #repositoryの取得
+    repositoryPath = @project.repository.url
+
+    #repository type
+    case @repository.scm
+    when Redmine::Scm::Adapters::GitAdapter 
+      compileGitSphinx( repositoryPath, projectPath, @projectId, @@sphinxMakefileHead, @revision )
+    when Redmine::Scm::Adapters::SubversionAdapter
+      @username = @repository.login
+      @password = @repository.password
+      compileSubversionSphinx( repositoryPath, projectPath, @projectId, @@sphinxMakefileHead, @revision, @username, @password )
+    end
 
     #sphinxのMakefileのパス取得
     sphinxPath = searchMakefile( projectPath + "/" + @projectId + "/" + @revision, @@sphinxMakefileHead )
@@ -104,8 +114,8 @@ class SphinxController < ApplicationController
       when Redmine::Scm::Adapters::MercurialAdapter
         @repositoryType = "mercurial"
       end
-
     end
+
   end
 
   private 
@@ -162,7 +172,7 @@ class SphinxController < ApplicationController
   #  redmine: project名
   #  sphinxMakefileHead: sphinxのmakefileのheadにある文字列
   #  revision: revision名
-  def compileSphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
+  def compileGitSphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #TODO: こんな風にコマンド組み込んでいいのか?修正を検討
 
     #既にコンパイル済みだったらいちいちmakeしない
@@ -196,4 +206,32 @@ class SphinxController < ApplicationController
       system( "cd #{doc}; make html")
     end
   end
+
+  #repositoryからsphinxドキュメントを取得してcompile
+  #argument:
+  #  repositoryPath: git repositoryのおいてあるpath
+  #  temporaryPath: コンパイル済みsphinxデータをおいておくpath
+  #  redmine: project名
+  #  sphinxMakefileHead: sphinxのmakefileのheadにある文字列
+  #  revision: revision number
+  #  username: subversion username
+  #  password: subversion password
+  def compileSubversionSphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
+    #既にコンパイル済みだったらいちいちmakeしない
+    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then
+      return
+    end
+
+    #subversion checkout
+    subversionCheckoutCommand = "svn checkout #{repositoryPath}@#{revision} "
+    subversionCheckoutCommand = subversionCheckoutCommand + "--username #{username} --password #{password} #{temporaryPath}/#{redmineProjectName}/#{revision}"
+    system( subversionCheckoutCommand )
+
+    doc = searchMakefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
+    if( doc != nil ) then
+      doc = doc.gsub( /(Makefile$)/ , "")
+      system( "cd #{doc}; make html")
+    end
+  end
+
 end

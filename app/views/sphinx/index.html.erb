@@ -1,9 +1,42 @@
 <h2>Sphinx Document List</h2>
 
-
 <% if ( @repository == nil || @changeset == nil ) then %>
 
 <p>Sphinxドキュメントが見つかりませんでした。</p>
+
+<% elsif ( @repositoryType != nil && @repositoryType == "subversion" ) then %>
+
+
+<h3> Subversion Repository </h3>
+
+<table class="list_changesets">
+<thead>
+<tr>
+
+<th>revision</th>
+<th>Document</th>
+<th>Date</th>
+<th>Author</th>
+<th>Comment</th>
+
+</tr>
+</thead>
+<tbody>
+
+<% @changeset.each do |data| %>
+<tr class="changeset <%= cycle 'odd', 'even' %>">
+<td class="revision"><%= data.revision %> </td>
+<td class="showdoc">  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => data.revision ) %>  </td>
+<td class="committed_on"><%= format_time(data.committed_on) %></td>
+<td class="author"><%=h data.author %></td>
+<td class="comments"><%= textilizable(truncate_at_line_break(data.comments)) %></td>
+</tr>
+<% end %>
+
+</tbody>
+</table>
+
+
 
 <% elsif ( @repositoryType != nil && @repositoryType == "git" && @extrainfo != nil && @extrainfo['branches'] != nil ) then %>
 
@@ -77,6 +110,6 @@
 
 <% else %>
 
-<p>Git以外のrepositoryには対応していません</p>
+<p>Git, Subversion以外のrepositoryには対応していません</p>
 
 <% end %> 

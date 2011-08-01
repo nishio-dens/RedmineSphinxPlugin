@@ -1,5 +1,11 @@
 <h2>Sphinx Document List</h2>
 
+<% if ( @extrainfo == nil || @extrainfo['branches'] == nil || @changeset == nil ) then %>
+
+<p>Sphinxドキュメントが見つかりませんでした。</p>
+
+<% else %>
+
 <h3> Branch </h3>
 
 <table class= "branch_list">
@@ -15,12 +21,17 @@
 </tr></thead>
 
 <tbody>
+
 <% @extrainfo['branches'].each_pair do | branchname, val | %>
 <tr class="branchlist <%= cycle 'odd', 'even' %>"> 
 <td class="name"> <%= branchname %> </td>
-<% @binfo = @changeset.select{|cdata| cdata['revision']== val['last_scmid'] } %> 
-<td>  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => val['last_scmid'] ) %>  </td>
-<td> <%= val['last_scmid'] %> </td>
+<% @lastscmid = val['last_scmid'] %>
+<% if ( @lastscmid == nil ) then %>
+<% next %>
+<% end %>
+<% @binfo = @changeset.select{|cdata| cdata['revision']== @lastscmid } %> 
+<td>  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => @lastscmid ) %>  </td>
+<td> <%= @lastscmid %> </td>
 <td> <%= format_time(@binfo[0].committed_on) %> </td>
 <td> <%= @binfo[0].author %> </td>
 <td> <%= @binfo[0].comments %> </td>
@@ -61,5 +72,7 @@
 </tbody>
 </table>
 
+
+<% end %> 
 
 

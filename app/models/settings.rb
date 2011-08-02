@@ -73,11 +73,11 @@ class Settings < Settingslogic
     #リポジトリにあわせてsphinx documentをコンパイル
     case repository.scm
     when Redmine::Scm::Adapters::GitAdapter 
-      compileGitSphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
+      compile_git_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
     when Redmine::Scm::Adapters::SubversionAdapter
       username = repository.login
       password = repository.password
-      compileSubversionSphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision, username, password )
+      compile_subversion_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision, username, password )
     end
   end
 
@@ -131,9 +131,7 @@ class Settings < Settingslogic
   #  redmine: project名
   #  sphinxMakefileHead: sphinxのmakefileのheadにある文字列
   #  revision: revision名
-  def compileGitSphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
-    #TODO: こんな風にコマンド組み込んでいいのか?修正を検討
-
+  def compile_git_sphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #既にコンパイル済みだったらいちいちmakeしない
     #TODO: コンパイルされているのをディレクトリの存在だけで判断していいのか?
     if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then
@@ -141,12 +139,12 @@ class Settings < Settingslogic
     end
 
     #git cloneを行って、適当なディレクトリにデータを取得する
-    gitCloneCommand = "git clone #{gitRepositoryPath} #{temporaryPath}/#{redmineProjectName}/head"
+    gitCloneCommand = "git clone '#{gitRepositoryPath}' '#{temporaryPath}/#{redmineProjectName}/head'"
 
     system( gitCloneCommand )
     #puts "command :" + gitCloneCommand
     #git pullでデータ取得
-    gitDir = "#{temporaryPath}/#{redmineProjectName}"
+    gitDir = "'#{temporaryPath}/#{redmineProjectName}'"
     moveToGitDirCommand = "cd #{gitDir}/head"
     gitPullCommand = "git --git-dir=.git pull"
 
@@ -154,8 +152,8 @@ class Settings < Settingslogic
     system( moveToGitDirCommand + ";" + gitPullCommand )
 
     #git revision copyを行う
-    copyCommand = "cp -rf #{gitDir}/head/ #{gitDir}/#{revision}"
-    checkoutCommand = "cd #{gitDir}/#{revision}" + ";" + "git checkout #{revision}" 
+    copyCommand = "cp -rf '#{gitDir}/head/' '#{gitDir}/#{revision}'"
+    checkoutCommand = "cd '#{gitDir}/#{revision}'" + ";" + "git checkout '#{revision}'" 
     system( copyCommand )
     system( checkoutCommand )
 
@@ -175,21 +173,48 @@ class Settings < Settingslogic
   #  revision: revision number
   #  username: subversion username
   #  password: subversion password
-  def compileSubversionSphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
+  def compile_subversion_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, usernameArg, passwordArg )
+    #escape処理
+    username = escape_shell( usernameArg )
+    password = escape_shell( passwordArg )
+
     #既にコンパイル済みだったらいちいちmakeしない
     if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then
       return
     end
 
     #subversion checkout
-    subversionCheckoutCommand = "svn checkout #{repositoryPath}@#{revision} "
-    subversionCheckoutCommand = subversionCheckoutCommand + "--username #{username} --password #{password} #{temporaryPath}/#{redmineProjectName}/#{revision}"
+    subversionCheckoutCommand = "svn checkout '#{repositoryPath}@#{revision}' "
+    subversionCheckoutCommand = subversionCheckoutCommand + "--username '#{username}' --password '#{password}' '#{temporaryPath}/#{redmineProjectName}/#{revision}'"
+#    system("svn", "checkout", '#{repositoryPath}@#{revision}', "--username '#{username}'", "--password '#{password}'", "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
     system( subversionCheckoutCommand )
 
     doc = search_makefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
     if( doc != nil ) then
       doc = doc.gsub( /(Makefile$)/ , "")
-      system( "cd #{doc}; make html")
+      system( "cd '#{doc}'; make html")
     end
+  end
+
+  #escape処理
+  #参照: http://webos-goodies.jp/archives/51353401.html
+  def escape_shell(str, opt = {})
+    if !str
+      return nil
+    end
+
+    str = str.dup
+    if opt[:erace]
+      opt[:erace] = [opt[:erace]] unless Array === opt[:erace]
+      opt[:erace].each do |i|
+        case i
+        when :ctrl   then str.gsub!(/[\x00-\x08\x0a-\x1f\x7f]/, '')
+        when :hyphen then str.gsub!(/^-+/, '')
+        else              str.gsub!(i, '')
+        end
+      end
+    end
+    str.gsub!(/[\!\"\$\&\'\(\)\*\,\:\;\<\=\>\?\[\\\]\^\`\{\|\}\t ]/, '\\\\\\&')
+    str
   end
 end

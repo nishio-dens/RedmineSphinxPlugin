@@ -26,7 +26,7 @@ class Sphinxs
     end
 
     #ドキュメントが見つかったかどうか
-    if sphinxPathDir then
+    if sphinxPathDir
       #Makefile内からbuild先のディレクトリ名を取得
       buildDirName = get_build_dir( sphinxPath )
 
@@ -47,7 +47,7 @@ class Sphinxs
           #server addressをリクエストから抜き出す
           serverAddress = request.headers['SERVER_NAME']
           serverPort = request.headers['SERVER_PORT']
-          if( @@serverPort != nil ) then
+          if @@serverPort 
             serverPort = @@serverPort
           end
 
@@ -80,14 +80,14 @@ class Sphinxs
 
   #sphinx makefileの場所を探す
   def self.search_makefile(path, sphinxMakefileHead)
-    if FileTest.directory?( path ) then
+    if FileTest.directory?( path ) 
       Dir.glob( "#{path}/**/Makefile" ).each do |filepath|
         makefile = File.open( filepath )
         #先頭文字列読み出し                                                                                                                
         headdata = makefile.gets
         makefile.close
 
-        if headdata.start_with?( sphinxMakefileHead) then
+        if headdata.start_with?( sphinxMakefileHead)
           sphinxMakefilePath = filepath #filepath.gsub( /(Makefile$)/ , "")
           #puts "#{filepath}".gsub( /(Makefile$)/ , "")
           #TODO: 複数のsphinx makefileがあった場合はどうする?
@@ -125,7 +125,7 @@ class Sphinxs
   def self.compile_git_sphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #既にコンパイル済みだったらいちいちmakeしない
     #TODO: コンパイルされているのをディレクトリの存在だけで判断していいのか?
-    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then
+    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
       return
     end
 
@@ -149,7 +149,7 @@ class Sphinxs
     system( checkoutCommand )
 
     doc = search_makefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
-    if( doc != nil ) then
+    if doc
       doc = doc.gsub( /(Makefile$)/ , "")
       system( "cd #{doc}; make html")
     end
@@ -170,7 +170,7 @@ class Sphinxs
     password = escape_shell( passwordArg )
 
     #既にコンパイル済みだったらいちいちmakeしない
-    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then
+    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
       return
     end
 
@@ -181,7 +181,7 @@ class Sphinxs
     system( subversionCheckoutCommand )
 
     doc = search_makefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
-    if( doc != nil ) then
+    if doc
       doc = doc.gsub( /(Makefile$)/ , "")
       system( "cd '#{doc}'; make html")
     end

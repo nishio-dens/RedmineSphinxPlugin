@@ -24,11 +24,10 @@ class Settings < Settingslogic
     projectPath = @@documentRoot + @@sphinxDir;
     #repositoryの取得
     repositoryPath = repository.url
-
     #リポジトリにあわせてsphinx documentをコンパイル
     case repository.scm
     when Redmine::Scm::Adapters::GitAdapter 
-      compileGitSphinx( repositoryPath, projectPath, @projectId, @@sphinxMakefileHead, @revision )
+      compileGitSphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
     when Redmine::Scm::Adapters::SubversionAdapter
       username = repository.login
       password = repository.password
@@ -88,7 +87,7 @@ class Settings < Settingslogic
   #  revision: revision名
   def compileGitSphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #TODO: こんな風にコマンド組み込んでいいのか?修正を検討
-
+puts "file exist?:" + "#{temporaryPath}/#{redmineProjectName}/#{revision}"
     #既にコンパイル済みだったらいちいちmakeしない
     #TODO: コンパイルされているのをディレクトリの存在だけで判断していいのか?
     if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then

@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
 class Sphinxs 
+
   #sphinxドキュメント設置ディレクトリ
-  @@sphinxDir = Settings.server.sphinx_dir
+  @@sphinxDir = SphinxPluginSettings.server.sphinx_dir
   #公開ディレクトリのルートパス
-  @@documentRoot = Settings.server.document_root_path
+  @@documentRoot = SphinxPluginSettings.server.document_root_path
   #sphinxのMakefileの先頭文字列
-  @@sphinxMakefileHead = Settings.sphinx.sphinx_makefile_head
+  @@sphinxMakefileHead = SphinxPluginSettings.sphinx.sphinx_makefile_head
   #sphinxの初期ページ
-  @@sphinxIndexPage = Settings.sphinx.sphinx_index_page
+  @@sphinxIndexPage = SphinxPluginSettings.sphinx.sphinx_index_page
   #serverのアドレス
-  @@serverPort = Settings.server.server_port
+  @@serverPort = SphinxPluginSettings.server.server_port
   #sphinx Makefile内のbuildディレクトリを指定している変数名
-  @@buildDirVariableName= Settings.sphinx.build_dir_variable_name
+  @@buildDirVariableName= SphinxPluginSettings.sphinx.build_dir_variable_name
 
     #redirect先を探す
   def self.search_redirect_path( projectId, revision, request )

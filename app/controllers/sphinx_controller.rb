@@ -21,58 +21,15 @@ class SphinxController < ApplicationController
 
     #sphinx documentのコンパイル
     Settings.compile_sphinx( @projectId, @revision, @repository )
+    #documentを探す
+    @documentPathAtServer = Settings.search_redirect_path( @projectId, @revision, request )
 
-    projectPath = @@documentRoot + @@sphinxDir
-    #sphinxのMakefileのパス取得
-    sphinxPath = Settings.search_makefile( projectPath + "/" + @projectId + "/" + @revision, @@sphinxMakefileHead )
-    #Makefileが存在するディレクトリ
-    if( sphinxPath != nil && sphinxPath != "" ) then
-      sphinxPathDir = sphinxPath.gsub( /(Makefile$)/ , "")
-    end
-
-    @document = "Sphinx Document Not Found."
-    #ドキュメントが見つかったかどうか
-    found = false
-    if sphinxPathDir then
-
-      #Makefile内からbuild先のディレクトリ名を取得
-      buildDirName = Settings.get_build_dir( sphinxPath )
-
-      if ( buildDirName != nil && buildDirName != "" ) then
-        indexPath = sphinxPathDir + buildDirName + "/html/" + @@sphinxIndexPage
-      else
-        sphinxDefaultBuildDir = "build/html/"
-        indexPath = sphinxPathDir + sphinxDefaultBuildDir + @@sphinxIndexPage
-      end
-
-      #sphinxのindex.htmlページを探してアドレスを取得
-      begin
-        f = open( indexPath )
-        @document = f.read
-        f.close
-
-        #server path
-        serverIndexPath = indexPath.gsub( @@documentRoot, "" )
-
-        #server addressをリクエストから抜き出す
-        @serverAddress = request.headers['SERVER_NAME']
-        @serverPort = request.headers['SERVER_PORT']
-        if( @@serverPort != nil ) then
-          @serverPort = @@serverPort
-        end
-        #server path
-        @documentPathAtServer = "http://" + @serverAddress.to_s + ":" + @serverPort.to_s + "/" + serverIndexPath
-
-        found = true
-      rescue
-        @document = "Found sphinx makefile buf Document not found. path: " + indexPath
-      end
-    end
-
-    if( found ) then
+    if @documentPathAtServer 
       #sphinx documentへのリダイレクト
       redirect_to @documentPathAtServer
     end
+    @document = "sphinx documentが見つかりませんでした"
+
   end
 
   #初期ページ

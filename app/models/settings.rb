@@ -18,6 +18,56 @@ class Settings < Settingslogic
   #sphinx Makefile内のbuildディレクトリを指定している変数名
   @@buildDirVariableName= Settings.sphinx.build_dir_variable_name
 
+  #redirect先を探す
+  def search_redirect_path( projectId, revision, request )
+    projectPath = @@documentRoot + @@sphinxDir
+    #sphinxのMakefileのパス取得
+    sphinxPath = search_makefile( projectPath + "/" + projectId + "/" + revision, @@sphinxMakefileHead )
+    #Makefileが存在するディレクトリ
+    if( sphinxPath != nil && sphinxPath != "" ) 
+      sphinxPathDir = sphinxPath.gsub( /(Makefile$)/ , "")
+    end
+
+    #ドキュメントが見つかったかどうか
+
+    if sphinxPathDir then
+
+      #Makefile内からbuild先のディレクトリ名を取得
+      buildDirName = get_build_dir( sphinxPath )
+
+      if ( buildDirName != nil && buildDirName != "" ) 
+        indexPath = sphinxPathDir + buildDirName + "/html/" + @@sphinxIndexPage
+      else
+        sphinxDefaultBuildDir = "build/html/"
+        indexPath = sphinxPathDir + sphinxDefaultBuildDir + @@sphinxIndexPage
+      end
+
+      #sphinxのindex.htmlページを探してアドレスを取得
+      begin
+        f = open( indexPath )
+        @document = f.read
+        f.close
+
+        #server path
+        serverIndexPath = indexPath.gsub( @@documentRoot, "" )
+
+        #server addressをリクエストから抜き出す
+        serverAddress = request.headers['SERVER_NAME']
+        serverPort = request.headers['SERVER_PORT']
+        if( @@serverPort != nil ) then
+          serverPort = @@serverPort
+        end
+
+        #server path
+        documentPathAtServer = "http://" + serverAddress.to_s + ":" + serverPort.to_s + "/" + serverIndexPath
+      rescue Exception => e
+        puts e
+      end
+    end
+
+    return documentPathAtServer
+  end
+
   #sphinx documentのコンパイル
   def compile_sphinx( projectId, revision, repository )
     #ドキュメントを設置する絶対パス
@@ -87,7 +137,7 @@ class Settings < Settingslogic
   #  revision: revision名
   def compileGitSphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #TODO: こんな風にコマンド組み込んでいいのか?修正を検討
-puts "file exist?:" + "#{temporaryPath}/#{redmineProjectName}/#{revision}"
+
     #既にコンパイル済みだったらいちいちmakeしない
     #TODO: コンパイルされているのをディレクトリの存在だけで判断していいのか?
     if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" ) then

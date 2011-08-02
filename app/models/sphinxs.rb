@@ -126,34 +126,36 @@ class Sphinxs
   #  revision: revision名
   def self.compile_git_sphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #既にコンパイル済みだったらいちいちmakeしない
-    #TODO: コンパイルされているのをディレクトリの存在だけで判断していいのか?
-    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
+    
+    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
+    
+    if File.exists?(dirPath)
       return
     end
 
     #git cloneを行って、適当なディレクトリにデータを取得する
-    gitCloneCommand = "git clone '#{gitRepositoryPath}' '#{temporaryPath}/#{redmineProjectName}/head'"
+    gitCloneCommand = "git clone #{Shellwords.shellescape(gitRepositoryPath)} #{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/head"
 
-    system( gitCloneCommand )
+    system(gitCloneCommand)
     #puts "command :" + gitCloneCommand
     #git pullでデータ取得
-    gitDir = "'#{temporaryPath}/#{redmineProjectName}'"
-    moveToGitDirCommand = "cd #{gitDir}/head"
+    gitDir = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}"
+    moveToGitDirCommand = "cd #{Shellwords.shellescape(gitDir)}/head"
     gitPullCommand = "git --git-dir=.git pull"
 
     #git pullを行ってheadデータ取得
     system( moveToGitDirCommand + ";" + gitPullCommand )
 
     #git revision copyを行う
-    copyCommand = "cp -rf '#{gitDir}/head/' '#{gitDir}/#{revision}'"
-    checkoutCommand = "cd '#{gitDir}/#{revision}'" + ";" + "git checkout '#{revision}'" 
+    copyCommand = "cp -rf #{Shellwords.shellescape(gitDir)}/head/ #{Shellwords.shellescape(gitDir)}/#{Shellwords.shellescape(revision)}"
+    checkoutCommand = "cd #{Shellwords.shellescape(gitDir)}/#{Shellwords.shellescape(revision)}" + ";" + "git checkout #{Shellwords.shellescape(revision)}" 
     system( copyCommand )
     system( checkoutCommand )
 
-    doc = search_makefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
+    doc = search_makefile( dirPath, sphinxMakefileHead )
     if doc
       doc = doc.gsub( /(Makefile$)/ , "")
-      system( "cd #{doc}; make html")
+      system( "cd #{Shellwords.shellescape(doc)}; make html")
     end
   end
 

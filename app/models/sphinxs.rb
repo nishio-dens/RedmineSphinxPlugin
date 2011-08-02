@@ -2,6 +2,8 @@
 
 class Sphinxs 
 
+  require 'shellwords'
+
   #sphinxドキュメント設置ディレクトリ
   @@sphinxDir = SphinxPluginSettings.server.sphinx_dir
   #公開ディレクトリのルートパス
@@ -164,49 +166,22 @@ class Sphinxs
   #  revision: revision number
   #  username: subversion username
   #  password: subversion password
-  def self.compile_subversion_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, usernameArg, passwordArg )
-    #escape処理
-    username = escape_shell( usernameArg )
-    password = escape_shell( passwordArg )
-
+  def self.compile_subversion_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
     #既にコンパイル済みだったらいちいちmakeしない
-    if File.exists?( "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
+    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
+    if File.exists?(dirPath)
       return
     end
-
     #subversion checkout
-    subversionCheckoutCommand = "svn checkout '#{repositoryPath}@#{revision}' "
-    subversionCheckoutCommand = subversionCheckoutCommand + "--username '#{username}' --password '#{password}' '#{temporaryPath}/#{redmineProjectName}/#{revision}'"
-#    system("svn", "checkout", '#{repositoryPath}@#{revision}', "--username '#{username}'", "--password '#{password}'", "#{temporaryPath}/#{redmineProjectName}/#{revision}" )
-    system( subversionCheckoutCommand )
+    subversionCheckoutCommand = "svn checkout #{Shellwords.shellescape(repositoryPath)}@#{Shellwords.shellescape(revision)} "
+    subversionCheckoutCommand = subversionCheckoutCommand + "--username #{Shellwords.shellescape(username)} --password #{Shellwords.shellescape(password)} " 
+    subversionCheckoutCommand = subversionCheckoutCommand +  "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}"
+    system(subversionCheckoutCommand) 
 
-    doc = search_makefile( "#{temporaryPath}/#{redmineProjectName}/#{revision}", sphinxMakefileHead )
+    doc = search_makefile(dirPath, sphinxMakefileHead)
     if doc
       doc = doc.gsub( /(Makefile$)/ , "")
-      system( "cd '#{doc}'; make html")
+      system( "cd '#{Shellwords.shellescape(doc)}'; make html")
     end
   end
-
-  #escape処理
-  #参照: http://webos-goodies.jp/archives/51353401.html
-  def self.escape_shell(str, opt = {})
-    if !str
-      return nil
-    end
-
-    str = str.dup
-    if opt[:erace]
-      opt[:erace] = [opt[:erace]] unless Array === opt[:erace]
-      opt[:erace].each do |i|
-        case i
-        when :ctrl   then str.gsub!(/[\x00-\x08\x0a-\x1f\x7f]/, '')
-        when :hyphen then str.gsub!(/^-+/, '')
-        else              str.gsub!(i, '')
-        end
-      end
-    end
-    str.gsub!(/[\!\"\$\&\'\(\)\*\,\:\;\<\=\>\?\[\\\]\^\`\{\|\}\t ]/, '\\\\\\&')
-    str
-  end
-
 end

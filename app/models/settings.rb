@@ -29,9 +29,7 @@ class Settings < Settingslogic
     end
 
     #ドキュメントが見つかったかどうか
-
     if sphinxPathDir then
-
       #Makefile内からbuild先のディレクトリ名を取得
       buildDirName = get_build_dir( sphinxPath )
 
@@ -44,27 +42,25 @@ class Settings < Settingslogic
 
       #sphinxのindex.htmlページを探してアドレスを取得
       begin
-        f = open( indexPath )
-        @document = f.read
-        f.close
+        exist = File.exists?( indexPath )
+        if exist
+          #server path
+          serverIndexPath = indexPath.gsub( @@documentRoot, "" )
 
-        #server path
-        serverIndexPath = indexPath.gsub( @@documentRoot, "" )
+          #server addressをリクエストから抜き出す
+          serverAddress = request.headers['SERVER_NAME']
+          serverPort = request.headers['SERVER_PORT']
+          if( @@serverPort != nil ) then
+            serverPort = @@serverPort
+          end
 
-        #server addressをリクエストから抜き出す
-        serverAddress = request.headers['SERVER_NAME']
-        serverPort = request.headers['SERVER_PORT']
-        if( @@serverPort != nil ) then
-          serverPort = @@serverPort
+          #server path
+          documentPathAtServer = "http://" + serverAddress.to_s + ":" + serverPort.to_s + "/" + serverIndexPath
         end
-
-        #server path
-        documentPathAtServer = "http://" + serverAddress.to_s + ":" + serverPort.to_s + "/" + serverIndexPath
       rescue Exception => e
         puts e
       end
     end
-
     return documentPathAtServer
   end
 

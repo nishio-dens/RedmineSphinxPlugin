@@ -2,17 +2,6 @@
 class SphinxController < ApplicationController
   unloadable
 
-  #sphinxドキュメント設置ディレクトリ
-  @@sphinxDir = Settings.server.sphinx_dir
-  #公開ディレクトリのルートパス
-  @@documentRoot = Settings.server.document_root_path
-  #sphinxのMakefileの先頭文字列
-  @@sphinxMakefileHead = Settings.sphinx.sphinx_makefile_head
-  #sphinxの初期ページ
-  @@sphinxIndexPage = Settings.sphinx.sphinx_index_page
-  #serverのアドレス
-  @@serverPort = Settings.server.server_port
-  
   def show
     @project = Project.find( params[:project_id] )
     @projectId = params[:project_id].to_s
@@ -29,7 +18,6 @@ class SphinxController < ApplicationController
       redirect_to @documentPathAtServer
     end
     @document = "sphinx documentが見つかりませんでした"
-
   end
 
   #初期ページ
@@ -50,7 +38,6 @@ class SphinxController < ApplicationController
   end
 
   private
-
   #repositoryのタイプ取得
   def check_repository_type( scm )
     case scm

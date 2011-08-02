@@ -100,23 +100,17 @@ class Sphinxs
 
   #sphinx makefile内からbuild先ディレクトリの情報を抜き出す
   def self.get_build_dir( path )
-    begin
-      makefile = File.open( path )
-      makefile.each do | line |
+    File::open(path) do | makefile |
+      makefile.each do |line|
         data = line.gsub(" ","")
         data = data.gsub("\t","")
 
-        if( data.start_with?( @@buildDirVariableName + "=") )
+        if  data.start_with?( @@buildDirVariableName + "=") 
           ret = data.gsub( @@buildDirVariableName + "=", "")
           ret.strip!
           return ret
         end
       end
-      makefile.close
-    rescue Exception => e
-      puts "Cannot open file( path:" + path.to_s + " )"
-      puts e
-      puts e.backtrace
     end
     return nil
   end

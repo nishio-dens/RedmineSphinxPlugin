@@ -40,24 +40,20 @@ class Sphinxs
       end
 
       #sphinxのindex.htmlページを探してアドレスを取得
-      begin
-        exist = File.exists?( indexPath )
-        if exist
-          #server path
-          serverIndexPath = indexPath.gsub( @@documentRoot, "" )
+      exist = File.exists?( indexPath )
+      if exist
+        #server path
+        serverIndexPath = indexPath.gsub( @@documentRoot, "" )
 
-          #server addressをリクエストから抜き出す
-          serverAddress = request.headers['SERVER_NAME']
-          serverPort = request.headers['SERVER_PORT']
-          if @@serverPort 
-            serverPort = @@serverPort
-          end
-
-          #server path
-          documentPathAtServer = "http://" + serverAddress.to_s + ":" + serverPort.to_s + "/" + serverIndexPath
+        #server addressをリクエストから抜き出す
+        serverAddress = request.headers['SERVER_NAME']
+        serverPort = request.headers['SERVER_PORT']
+        if @@serverPort 
+          serverPort = @@serverPort
         end
-      rescue Exception => e
-        puts e
+
+        #server path
+        documentPathAtServer = "http://" + serverAddress.to_s + ":" + serverPort.to_s + "/" + serverIndexPath
       end
     end
     return documentPathAtServer

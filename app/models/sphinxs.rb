@@ -73,6 +73,8 @@ class Sphinxs
       username = repository.login
       password = repository.password
       compile_subversion_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision, username, password )
+    when Redmine::Scm::Adapters::MercurialAdapter
+      compile_mercurial_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
     end
   end
 
@@ -122,7 +124,6 @@ class Sphinxs
   #  revision: revision名
   def self.compile_git_sphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
     #既にコンパイル済みだったらいちいちmakeしない
-    
     dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
     
     if File.exists?(dirPath)
@@ -147,6 +148,31 @@ class Sphinxs
     checkoutCommand = "cd #{Shellwords.shellescape(gitDir)}/#{Shellwords.shellescape(revision)}" + ";" + "git checkout #{Shellwords.shellescape(revision)}" 
     system( copyCommand )
     system( checkoutCommand )
+
+    doc = search_makefile( dirPath, sphinxMakefileHead )
+    if doc
+      doc = doc.gsub( /(Makefile$)/ , "")
+      system( "cd #{Shellwords.shellescape(doc)}; make html")
+    end
+  end
+
+  #mercurialからsphinxドキュメントを取得してcompile
+  def self.compile_mercurial_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
+    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
+    if File.exists?(dirPath)
+      return
+    end
+    #projectを一時的においておくディレクトリ作成
+    FileUtils.mkdir_p( dirPath ) 
+
+    #適当なディレクトリにcloneを作る
+    cloneCommand = "hg clone #{Shellwords.shellescape(repositoryPath)} " + dirPath
+    system(cloneCommand)
+    
+    moveDirCommand = "cd " + dirPath 
+    checkoutCommand = "hg checkout #{Shellwords.shellescape(revision)}"
+
+    system( moveDirCommand + ";" + checkoutCommand )
 
     doc = search_makefile( dirPath, sphinxMakefileHead )
     if doc

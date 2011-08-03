@@ -3,21 +3,20 @@ class SphinxController < ApplicationController
   unloadable
 
   def show
-    @project = Project.find( params[:project_id] )
-    @projectId = params[:project_id].to_s
-    @revision = params[:revision].to_s
-    @repository = @project.repository
+    project = Project.find( params[:project_id] )
+    projectId = params[:project_id].to_s
+    revision = params[:revision].to_s
+    repository = project.repository
 
     #sphinx documentのコンパイル
-    Sphinxs.compile_sphinx( @projectId, @revision, @repository )
+    Sphinxs.compile_sphinx( projectId, revision, repository )
     #documentを探す
-    @documentPathAtServer = Sphinxs.search_redirect_path( @projectId, @revision, request )
+    documentPathAtServer = Sphinxs.search_redirect_path( projectId, revision, request )
 
-    if @documentPathAtServer 
+    if documentPathAtServer 
       #sphinx documentへのリダイレクト
-      redirect_to @documentPathAtServer
+      redirect_to documentPathAtServer
     end
-    @document = "sphinx documentが見つかりませんでした"
   end
 
   #初期ページ

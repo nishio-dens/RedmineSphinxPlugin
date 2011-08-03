@@ -48,7 +48,6 @@ class SphinxController < ApplicationController
     when Redmine::Scm::Adapters::MercurialAdapter
       repositoryType = "mercurial"
     end
-    return repositoryType
   end
     
 end

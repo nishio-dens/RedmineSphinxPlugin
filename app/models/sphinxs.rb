@@ -4,24 +4,15 @@ class Sphinxs
 
   require 'shellwords'
 
-  #sphinxドキュメント設置ディレクトリ
-  @@sphinxDir = SphinxPluginSettings.server.sphinx_dir
-  #公開ディレクトリのルートパス
-  @@documentRoot = SphinxPluginSettings.server.document_root_path
-  #sphinxのMakefileの先頭文字列
-  @@sphinxMakefileHead = SphinxPluginSettings.sphinx.sphinx_makefile_head
-  #sphinxの初期ページ
-  @@sphinxIndexPage = SphinxPluginSettings.sphinx.sphinx_index_page
-  #serverのアドレス
-  @@serverPort = SphinxPluginSettings.server.server_port
-  #sphinx Makefile内のbuildディレクトリを指定している変数名
-  @@buildDirVariableName= SphinxPluginSettings.sphinx.build_dir_variable_name
-
-    #redirect先を探す
+  #redirect先を探す
   def self.search_redirect_path( projectId, revision, request )
-    projectPath = @@documentRoot + @@sphinxDir
+    #sphinxおよびドキュメント配置サーバの設定
+    sphinxSetting = SphinxPluginSettings.sphinx
+    serverSetting = SphinxPluginSettings.server
+
+    projectPath = serverSetting.document_root_path + serverSetting.sphinx_dir
     #sphinxのMakefileのパス取得
-    sphinxPath = search_makefile( projectPath + "/" + projectId + "/" + revision, @@sphinxMakefileHead )
+    sphinxPath = search_makefile( projectPath + "/" + projectId + "/" + revision, sphinxSetting.sphinx_makefile_head )
     #Makefileが存在するディレクトリ
     if( sphinxPath != nil && sphinxPath != "" ) 
       sphinxPathDir = sphinxPath.gsub( /(Makefile$)/ , "")
@@ -33,23 +24,23 @@ class Sphinxs
       buildDirName = get_build_dir( sphinxPath )
 
       if ( buildDirName != nil && buildDirName != "" ) 
-        indexPath = sphinxPathDir + buildDirName + "/html/" + @@sphinxIndexPage
+        indexPath = sphinxPathDir + buildDirName + "/html/" + sphinxSetting.sphinx_index_page
       else
         sphinxDefaultBuildDir = "build/html/"
-        indexPath = sphinxPathDir + sphinxDefaultBuildDir + @@sphinxIndexPage
+        indexPath = sphinxPathDir + sphinxDefaultBuildDir + sphinxSetting.sphinx_index_page
       end
 
       #sphinxのindex.htmlページを探してアドレスを取得
-      exist = File.exists?( indexPath )
+      exist = File.exists?(indexPath)
       if exist
         #server path
-        serverIndexPath = indexPath.gsub( @@documentRoot, "" )
+        serverIndexPath = indexPath.gsub(serverSetting.document_root_path, "")
 
         #server addressをリクエストから抜き出す
         serverAddress = request.headers['SERVER_NAME']
         serverPort = request.headers['SERVER_PORT']
-        if @@serverPort 
-          serverPort = @@serverPort
+        if serverSetting.server_port
+          serverPort = serverSetting.server_port
         end
 
         #server path
@@ -61,20 +52,24 @@ class Sphinxs
 
   #sphinx documentのコンパイル
   def self.compile_sphinx( projectId, revision, repository )
+    #sphinxおよびドキュメント配置サーバの設定
+    sphinxSetting = SphinxPluginSettings.sphinx
+    serverSetting = SphinxPluginSettings.server
+
     #ドキュメントを設置する絶対パス
-    projectPath = @@documentRoot + @@sphinxDir;
+    projectPath = serverSetting.document_root_path + serverSetting.sphinx_dir;
     #repositoryの取得
     repositoryPath = repository.url
     #リポジトリにあわせてsphinx documentをコンパイル
     case repository.scm
     when Redmine::Scm::Adapters::GitAdapter 
-      compile_git_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
+      compile_git_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision )
     when Redmine::Scm::Adapters::SubversionAdapter
       username = repository.login
       password = repository.password
-      compile_subversion_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision, username, password )
+      compile_subversion_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision, username, password )
     when Redmine::Scm::Adapters::MercurialAdapter
-      compile_mercurial_sphinx( repositoryPath, projectPath, projectId, @@sphinxMakefileHead, revision )
+      compile_mercurial_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision )
     end
   end
 
@@ -100,13 +95,16 @@ class Sphinxs
 
   #sphinx makefile内からbuild先ディレクトリの情報を抜き出す
   def self.get_build_dir( path )
+    #sphinxおよびドキュメント配置サーバの設定
+    sphinxSetting = SphinxPluginSettings.sphinx
+
     File::open(path) do | makefile |
       makefile.each do |line|
         data = line.gsub(" ","")
         data = data.gsub("\t","")
 
-        if  data.start_with?( @@buildDirVariableName + "=") 
-          ret = data.gsub( @@buildDirVariableName + "=", "")
+        if  data.start_with?( sphinxSetting.build_dir_variable_name + "=") 
+          ret = data.gsub( sphinxSetting.build_dir_variable_name + "=", "")
           ret.strip!
           return ret
         end

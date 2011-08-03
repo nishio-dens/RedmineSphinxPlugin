@@ -14,7 +14,7 @@ class Sphinx
     #sphinxのMakefileのパス取得
     sphinxPath = search_makefile( projectPath + "/" + projectId + "/" + revision, sphinxSetting.sphinx_makefile_head )
     #Makefileが存在するディレクトリ
-    if( sphinxPath != nil && sphinxPath != "" ) 
+    if sphinxPath
       sphinxPathDir = sphinxPath.gsub( /(Makefile$)/ , "")
     end
 
@@ -23,7 +23,7 @@ class Sphinx
       #Makefile内からbuild先のディレクトリ名を取得
       buildDirName = get_build_dir( sphinxPath )
 
-      if ( buildDirName != nil && buildDirName != "" ) 
+      if buildDirName
         indexPath = sphinxPathDir + buildDirName + "/html/" + sphinxSetting.sphinx_index_page
       else
         sphinxDefaultBuildDir = "build/html/"

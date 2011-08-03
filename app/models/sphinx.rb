@@ -63,13 +63,14 @@ class Sphinx
     #リポジトリにあわせてsphinx documentをコンパイル
     case repository.scm
     when Redmine::Scm::Adapters::GitAdapter 
-      compile_git_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision )
+      checkout( GitDriver.new, repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision, nil, nil )
+#      compile_git_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision )
     when Redmine::Scm::Adapters::SubversionAdapter
       username = repository.login
       password = repository.password
-      compile_subversion_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision, username, password )
+      checkout( SubversionDriver.new, repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision, username, password )
     when Redmine::Scm::Adapters::MercurialAdapter
-      compile_mercurial_sphinx( repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision )
+      checkout( MercurialDriver.new, repositoryPath, projectPath, projectId, sphinxSetting.sphinx_makefile_head, revision, nil, nil )
     end
   end
 
@@ -90,6 +91,23 @@ class Sphinx
   def self.get_build_dir( path )
     /^\s*#{SphinxPluginSettings.sphinx.build_dir_variable_name}\s*=\s*(.*)$/s =~ File.read(path)
     return $1
+  end
+
+  #repositoryからsphinxドキュメントを取得してcompile
+  def self.checkout( driver, repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
+    dirRevPath = "#{esc temporaryPath}/#{esc redmineProjectName}/#{esc revision}" 
+    #既にコンパイル済みだったらいちいちmakeしない
+    if File.exists?(dirRevPath)
+      return
+    end
+    #repositoryからプロジェクトのチェックアウト
+    driver.checkout( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
+    #makeを行う
+    doc = search_makefile( dirRevPath, sphinxMakefileHead )
+    if doc
+      doc = doc.gsub( /(Makefile$)/ , "")
+      system( "cd #{esc doc}; make html")
+    end
   end
 
   #repositoryからsphinxドキュメントを取得してcompile
@@ -121,7 +139,7 @@ class Sphinx
     checkoutCommand = "cd #{dirRevPath}" + ";" + "git checkout #{esc revision}" 
     system( checkoutCommand )
     #makeを行う
-    doc = search_makefile( dirPath, sphinxMakefileHead )
+    doc = search_makefile( dirRevPath, sphinxMakefileHead )
     if doc
       doc = doc.gsub( /(Makefile$)/ , "")
       system( "cd #{esc doc}; make html")
@@ -130,27 +148,7 @@ class Sphinx
 
   #mercurialからsphinxドキュメントを取得してcompile
   def self.compile_mercurial_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
-    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
-    if File.exists?(dirPath)
-      return
-    end
-    #projectを一時的においておくディレクトリ作成
-    FileUtils.mkdir_p( dirPath ) 
 
-    #適当なディレクトリにcloneを作る
-    cloneCommand = "hg clone #{Shellwords.shellescape(repositoryPath)} " + dirPath
-    system(cloneCommand)
-    
-    moveDirCommand = "cd " + dirPath 
-    checkoutCommand = "hg checkout #{Shellwords.shellescape(revision)}"
-
-    system( moveDirCommand + ";" + checkoutCommand )
-
-    doc = search_makefile( dirPath, sphinxMakefileHead )
-    if doc
-      doc = doc.gsub( /(Makefile$)/ , "")
-      system( "cd #{Shellwords.shellescape(doc)}; make html")
-    end
   end
 
   #repositoryからsphinxドキュメントを取得してcompile
@@ -164,17 +162,15 @@ class Sphinx
   #  password: subversion password
   def self.compile_subversion_sphinx( repositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision, username, password )
     #既にコンパイル済みだったらいちいちmakeしない
-    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
-    if File.exists?(dirPath)
+    dirPath = "#{esc temporaryPath}/#{esc redmineProjectName}"
+    dirRevPath = "#{dirPath}/#{esc revision}" 
+    if File.exists?(dirRevPath)
       return
     end
     #subversion checkout
-    subversionCheckoutCommand = "svn checkout #{Shellwords.shellescape(repositoryPath)}@#{Shellwords.shellescape(revision)} "
-    subversionCheckoutCommand = subversionCheckoutCommand + "--username #{Shellwords.shellescape(username)} --password #{Shellwords.shellescape(password)} " 
-    subversionCheckoutCommand = subversionCheckoutCommand +  "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}"
-    system(subversionCheckoutCommand) 
-
-    doc = search_makefile(dirPath, sphinxMakefileHead)
+    system("svn", "checkout", "#{repositoryPath}@#{revision}", "--username", username, "--password", password, dirRevPath)
+    #makeを行う
+    doc = search_makefile(dirRevPath, sphinxMakefileHead)
     if doc
       doc = doc.gsub( /(Makefile$)/ , "")
       system( "cd '#{Shellwords.shellescape(doc)}'; make html")
@@ -182,7 +178,6 @@ class Sphinx
   end
 
   private
-
   def self.esc(arg)
     Shellwords.shellescape(arg)
   end

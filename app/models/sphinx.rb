@@ -100,36 +100,31 @@ class Sphinx
   #  sphinxMakefileHead: sphinxのmakefileのheadにある文字列
   #  revision: revision名
   def self.compile_git_sphinx( gitRepositoryPath, temporaryPath, redmineProjectName, sphinxMakefileHead, revision )
+    dirPath = "#{esc temporaryPath}/#{esc redmineProjectName}"
+    dirRevPath = "#{dirPath}/#{esc revision}" 
+    dirHeadPath = "#{dirPath}/head"
+
     #既にコンパイル済みだったらいちいちmakeしない
-    dirPath = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/#{Shellwords.shellescape(revision)}" 
-    
-    if File.exists?(dirPath)
+    if File.exists?(dirRevPath)
       return
     end
-
-    #git cloneを行って、適当なディレクトリにデータを取得する
-    gitCloneCommand = "git clone #{Shellwords.shellescape(gitRepositoryPath)} #{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}/head"
-
-    system(gitCloneCommand)
-    #puts "command :" + gitCloneCommand
+    #git cloneを行って、head取得
+    system("git","clone",gitRepositoryPath, dirHeadPath)
     #git pullでデータ取得
-    gitDir = "#{Shellwords.shellescape(temporaryPath)}/#{Shellwords.shellescape(redmineProjectName)}"
-    moveToGitDirCommand = "cd #{Shellwords.shellescape(gitDir)}/head"
+    moveToGitDirCommand = "cd #{dirHeadPath}"
     gitPullCommand = "git --git-dir=.git pull"
-
     #git pullを行ってheadデータ取得
     system( moveToGitDirCommand + ";" + gitPullCommand )
-
     #git revision copyを行う
-    copyCommand = "cp -rf #{Shellwords.shellescape(gitDir)}/head/ #{Shellwords.shellescape(gitDir)}/#{Shellwords.shellescape(revision)}"
-    checkoutCommand = "cd #{Shellwords.shellescape(gitDir)}/#{Shellwords.shellescape(revision)}" + ";" + "git checkout #{Shellwords.shellescape(revision)}" 
-    system( copyCommand )
+    system("cp","-rf", dirHeadPath, dirRevPath)
+    #git checkoutを行う
+    checkoutCommand = "cd #{dirRevPath}" + ";" + "git checkout #{esc revision}" 
     system( checkoutCommand )
-
+    #makeを行う
     doc = search_makefile( dirPath, sphinxMakefileHead )
     if doc
       doc = doc.gsub( /(Makefile$)/ , "")
-      system( "cd #{Shellwords.shellescape(doc)}; make html")
+      system( "cd #{esc doc}; make html")
     end
   end
 
@@ -185,4 +180,11 @@ class Sphinx
       system( "cd '#{Shellwords.shellescape(doc)}'; make html")
     end
   end
+
+  private
+
+  def self.esc(arg)
+    Shellwords.shellescape(arg)
+  end
+
 end

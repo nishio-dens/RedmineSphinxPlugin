@@ -76,17 +76,10 @@ class Sphinx
   #sphinx makefileの場所を探す
   def self.search_makefile(path, sphinxMakefileHead)
     if FileTest.directory?( path ) 
-      Dir.glob( "#{path}/**/Makefile" ).each do |filepath|
-        makefile = File.open( filepath )
-        #先頭文字列読み出し                                                                                                                
-        headdata = makefile.gets
-        makefile.close
-
-        if headdata.start_with?( sphinxMakefileHead)
-          sphinxMakefilePath = filepath #filepath.gsub( /(Makefile$)/ , "")
-          #puts "#{filepath}".gsub( /(Makefile$)/ , "")
-          #TODO: 複数のsphinx makefileがあった場合はどうする?
-          return sphinxMakefilePath
+      Dir.glob("#{path}/**/Makefile").each do |filepath|
+        found = /^#{sphinxMakefileHead}/ =~ File.read(filepath) 
+        if found
+          return filepath
         end
       end
     end

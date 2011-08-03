@@ -95,22 +95,8 @@ class Sphinx
 
   #sphinx makefile内からbuild先ディレクトリの情報を抜き出す
   def self.get_build_dir( path )
-    #sphinxおよびドキュメント配置サーバの設定
-    sphinxSetting = SphinxPluginSettings.sphinx
-
-    File::open(path) do | makefile |
-      makefile.each do |line|
-        data = line.gsub(" ","")
-        data = data.gsub("\t","")
-
-        if  data.start_with?( sphinxSetting.build_dir_variable_name + "=") 
-          ret = data.gsub( sphinxSetting.build_dir_variable_name + "=", "")
-          ret.strip!
-          return ret
-        end
-      end
-    end
-    return nil
+    /^\s*#{SphinxPluginSettings.sphinx.build_dir_variable_name}\s*=\s*(.*)$/s =~ File.read(path)
+    return $1
   end
 
   #repositoryからsphinxドキュメントを取得してcompile

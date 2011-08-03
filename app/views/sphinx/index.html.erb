@@ -107,7 +107,63 @@
 
 <% elsif ( @repositoryType && @repositoryType == "mercurial" ) then %>
 
-<%= debug( @repository ) %>
+
+<h3> Branch </h3>
+
+<table class= "branch_list">
+<thead><tr>
+
+<th>Branch name</th>
+<th>Document</th>
+<th>revision</th>
+<th>Date</th>
+<th>Author</th>
+<th>Comment</th>
+
+</tr></thead>
+
+<tbody>
+
+<% if @branches %>
+
+<% @branches.each do | branchname | %>
+<tr class="branchlist <%= cycle 'odd', 'even' %>"> 
+<td class="name"> <%= branchname %> </td>
+
+<% @latestChangesets = @repository.latest_changesets([], branchname) %>
+<% if @latestChangesets && @latestChangesets.size > 0 %>
+<%   @binfo = @latestChangesets[0] %> 
+<% else %>
+<%   @binfo = nil %>
+<% end %>
+
+<% if (@latestChangesets && @binfo) %>
+
+<td>  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => @binfo.revision ) %>  </td>
+<td> <%= @binfo.revision %> </td>
+<td> <%= format_time(@binfo.committed_on) %> </td>
+<td> <%= @binfo.author %> </td>
+<td> <%= @binfo.comments %> </td>
+
+</tr>
+<% else %>
+<td> none </td>
+<td> none </td>
+<td> none </td>
+<td> none </td>
+<td> none </td>
+</tr>
+<% end %>
+
+<% end %>
+
+</tbody>
+</table>
+
+<br><br>
+<% end %>
+
+<h3> Mercurial Repository </h3>
 
 <table class="list_changesets">
 <thead>
@@ -139,6 +195,6 @@
 
 <% else %>
 
-<p>Git, Subversion以外のrepositoryには対応していません</p>
+<p>Git, Mercurial, Subversion以外のrepositoryには対応していません</p>
 
 <% end %> 

@@ -32,8 +32,8 @@ class SphinxController < ApplicationController
       @repositoryType = check_repository_type( @repository.scm )
       if @repositoryType == "git" 
         @extrainfo = @repository.extra_info
-        @branches = @repository.branches
       end
+      @branches = @repository.branches
     end
   end
 

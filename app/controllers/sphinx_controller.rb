@@ -9,9 +9,9 @@ class SphinxController < ApplicationController
     repository = project.repository
 
     #sphinx documentのコンパイル
-    Sphinxs.compile_sphinx( projectId, revision, repository )
+    Sphinx.compile_sphinx( projectId, revision, repository )
     #documentを探す
-    documentPathAtServer = Sphinxs.search_redirect_path( projectId, revision, request )
+    documentPathAtServer = Sphinx.search_redirect_path( projectId, revision, request )
 
     if documentPathAtServer 
       #sphinx documentへのリダイレクト

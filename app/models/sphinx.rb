@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-class Sphinxs 
+class Sphinx 
 
   require 'shellwords'
 

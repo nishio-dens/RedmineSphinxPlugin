@@ -51,7 +51,7 @@ class Sphinx
   end
 
   #sphinx documentのコンパイル
-  def self.compile_sphinx( projectId, revision, repository )
+  def self.compile( projectId, revision, repository )
     #sphinxおよびドキュメント配置サーバの設定
     sphinxSetting = SphinxPluginSettings.sphinx
     serverSetting = SphinxPluginSettings.server

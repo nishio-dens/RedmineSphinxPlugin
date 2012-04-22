@@ -4,9 +4,8 @@ class MercurialDriver
     dirPath = "#{esc temporaryPath}/#{esc redmineProjectName}"
     dirRevPath = "#{dirPath}/#{esc revision}" 
 
-    #projectを一時的においておくディレクトリ作成
+    #Make temporary directory for checkout
     FileUtils.mkdir_p( dirRevPath ) 
-    #適当なディレクトリにcloneを作る
     system("hg","clone", repositoryPath, dirRevPath)
     #checkout
     moveDirCommand = "cd " + dirRevPath 

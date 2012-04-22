@@ -1,3 +1,26 @@
-= sphinx
+= Sphinx Redmine Plugin
 
-Description goes here
+* You can show your sphinx documents on your redmine.
+* This plugin support Git, Mercurial and SVN.
+
+== Requirements
+
+* Before you use this plugin, You need to make project on your redmine, and configuration your repository.
+* This plugin compile your sphinx document using Sphinx Makefile on your repository and deploy any directory. If it cannot find Makefile, it doesn't work properly.
+* You need Settingslogic.
+
+== How to use
+
+1. When you install this plugin, 'Sphinx Document' Tab will be displayed on the menu bar of your Redmine Project.
+2. Click this tab, and if it work properly, you can see Sphinx Document List.
+
+== How to install
+
+1. To use this plugin, you need to install Settingslogic using ruby gems. (command: gem install settingslogic)
+2. Download this plugin using 'git clone git:github.com/nishio-dens/RedmineSphinxPlugin.git' command.
+3. Copy RedmineSphinxPlugin directory to 'vender/plugins' on Redmine installed directory. 
+4. Copy sphinx_plugin_setting.yml.sample on RedmineSphinxPlugin/sample to config directory on redmine root directory, and change setting file name from sphinx_plugin_setting.yml.sample to sphinx_plugin_setting.yml.
+5. Restart your redmine.
+
+
+

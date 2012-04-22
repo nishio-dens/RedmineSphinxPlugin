@@ -7,10 +7,7 @@ Redmine::Plugin.register :redmine_sphinx do
   description 'This is a plugin for Redmine'
   version '0.0.1'
 
-  # top menuに追加  
-  #  menu :top_menu, :sphinx_list, { :controller => 'sphinx', :action => 'index' }, :caption => "List", :last => true
-
-  # sphinx用のメニュー追加
+  # Add sphinx document tab
   permission :sphinx, {:sphinx => [:index]}, :public => true
-  menu :project_menu, :sphinx_list, { :controller => 'sphinx', :action => 'index' }, :caption => 'Sphinxドキュメント', :param => :project_id
+  menu :project_menu, :sphinx_list, { :controller => 'sphinx', :action => 'index' }, :caption => 'Sphinx Documents', :param => :project_id
 end

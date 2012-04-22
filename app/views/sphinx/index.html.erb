@@ -2,7 +2,7 @@
 
 <% if ( @repository == nil || @changeset == nil ) then %>
 
-<p>Sphinxドキュメントが見つかりませんでした。</p>
+<p>Sphinx Documents Not Found.</p>
 
 <% elsif ( @repositoryType != nil && @repositoryType == "subversion" ) then %>
 
@@ -195,6 +195,6 @@
 
 <% else %>
 
-<p>Git, Mercurial, Subversion以外のrepositoryには対応していません</p>
+<p>Bad Repository Type.</p>
 
 <% end %> 

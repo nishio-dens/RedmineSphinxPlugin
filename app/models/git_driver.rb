@@ -5,16 +5,16 @@ class GitDriver
     dirRevPath = "#{dirPath}/#{esc revision}" 
     dirHeadPath = "#{dirPath}/head"
 
-    #git cloneを行って、head取得
+    #git clone, and get HEAD
     system("git","clone",repositoryPath, dirHeadPath)
-    #git pullでデータ取得
+    #git pull
     moveToGitDirCommand = "cd #{dirHeadPath}"
     gitPullCommand = "git --git-dir=.git pull"
-    #git pullを行ってheadデータ取得
+    #git pull and get HEAD
     system( moveToGitDirCommand + ";" + gitPullCommand )
-    #git revision copyを行う
+    #git revision copy
     system("cp","-rf", dirHeadPath, dirRevPath)
-    #git checkoutを行う
+    #git checkout
     checkoutCommand = "cd #{dirRevPath}" + ";" + "git checkout #{esc revision}" 
     system(checkoutCommand)
   end

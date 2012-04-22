@@ -8,18 +8,18 @@ class SphinxController < ApplicationController
     revision = params[:revision].to_s
     repository = project.repository
 
-    #sphinx documentのコンパイル
+    #compile sphinx document
     Sphinx.compile( projectId, revision, repository )
-    #documentを探す
+    #find document
     documentPathAtServer = Sphinx.search_redirect_path( projectId, revision, request )
 
     if documentPathAtServer 
-      #sphinx documentへのリダイレクト
+      #redirect to sphinx document
       redirect_to documentPathAtServer
     end
   end
 
-  #初期ページ
+  #initial page
   def index
     @project = Project.find( params[:project_id] )
     @projectId = params[:project_id]
@@ -37,7 +37,7 @@ class SphinxController < ApplicationController
   end
 
   private
-  #repositoryのタイプ取得
+  #get repository type
   def check_repository_type( scm )
     case scm
     when Redmine::Scm::Adapters::GitAdapter 

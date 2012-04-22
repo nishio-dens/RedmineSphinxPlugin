@@ -1,13 +1,13 @@
-# sphinx pluginの設定
+# sphinx plugin setting
 
 defaults: &defaults
 
   server:
-    #公開ディレクトリのルート
+    #Public Root Directory
     document_root_path: /var/www/
-    #ドキュメントを設置するディレクトリ名
+    #Directory name to put your sphinx document
     sphinx_dir: redminetest
-    #html表示サーバのポート番号
+    #http server port
     server_port: 80
 
   sphinx:

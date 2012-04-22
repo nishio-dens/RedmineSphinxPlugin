@@ -76,35 +76,6 @@
 
 <br><br>
 
-<h3> Repository </h3>
-
-<table class="list_changesets">
-<thead>
-<tr>
-
-<th>revision</th>
-<th>Document</th>
-<th>Date</th>
-<th>Author</th>
-<th>Comment</th>
-
-</tr>
-</thead>
-<tbody>
-
-<% @changeset.each do |data| %>
-<tr class="changeset <%= cycle 'odd', 'even' %>">
-<td class="revision"><%= data.revision %> </td>
-<td class="showdoc">  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => data.revision ) %>  </td>
-<td class="committed_on"><%= format_time(data.committed_on) %></td>
-<td class="author"><%=h data.author %></td>
-<td class="comments"><%= textilizable(truncate_at_line_break(data.comments)) %></td>
-</tr>
-<% end %>
-
-</tbody>
-</table>
-
 <% elsif ( @repositoryType && @repositoryType == "mercurial" ) then %>
 
 
@@ -162,36 +133,6 @@
 
 <br><br>
 <% end %>
-
-<h3> Mercurial Repository </h3>
-
-<table class="list_changesets">
-<thead>
-<tr>
-
-<th>revision</th>
-<th>Document</th>
-<th>Date</th>
-<th>Author</th>
-<th>Comment</th>
-
-</tr>
-</thead>
-<tbody>
-
-<% @changeset.each do |data| %>
-<tr class="changeset <%= cycle 'odd', 'even' %>">
-<td class="revision"><%= data.revision %> </td>
-<td class="showdoc">  <%= link_to('Show Document', :controller => 'sphinx', :action => 'show', :project_id => @projectId, :revision => data.revision ) %>  </td>
-<td class="committed_on"><%= format_time(data.committed_on) %></td>
-<td class="author"><%=h data.author %></td>
-<td class="comments"><%= textilizable(truncate_at_line_break(data.comments)) %></td>
-</tr>
-<% end %>
-
-</tbody>
-</table>
-
 
 <% else %>
 
